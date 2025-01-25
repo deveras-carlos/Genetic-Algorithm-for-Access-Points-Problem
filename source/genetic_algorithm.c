@@ -39,6 +39,7 @@ void start_population(
 
         // Correction if it's on line 1 or last line
         population->reading_individuals[ i ].neighbors[ 3 ] += ( i / COLS ) == 1 || ( i / COLS ) > ROWS - 2 ? COLS : 0;
+        population->reading_individuals[ i ].neighbors[ 2 ] += ( i / COLS ) == 1 || ( i / COLS ) > ROWS - 2 ? COLS : 0;    
         // printf( "%d : %d\n\n", i, ( i / COLS ) );
 
         for ( j = 0; j < 4; j++ )
@@ -82,6 +83,7 @@ void start_population(
 }
 
 int fix_unfeasible( unsigned short* xr, unsigned int* amt_allocated_clients, Problem* problem ){
+    // printf( "\nValor de xr: %d\n", *xr ); 
     if ( amt_allocated_clients[ *xr ] < problem->access_points_capacity[ *xr ] )
         return 1;
     
@@ -156,7 +158,7 @@ void downhill_local_search(
         if (new_fitness < original_fitness) {
             original_fitness = new_fitness;
         } else {
-            individual->genes[i] = original_gene - step_size;
+            individual->genes[i] = ( unsigned short )( original_gene - step_size ) % AMT_ACCESS_POINTS;
             fix_unfeasible(&(individual->genes[i]), individual->amt_allocated_clients, problem);
             new_fitness = fitness_function(individual->genes, individual_size, problem);
 
