@@ -28,6 +28,7 @@ BUILD_DIR= ./
 LIBS = -fopenmp -lm
 
 CFLAGS  += $(LIBS)
+CFLAGS += "-g"
 
 .PHONY: all program clean
 
@@ -35,7 +36,7 @@ all: program
 
 program:
 	@mkdir -p $(BUILD_DIR)
-	$(CC) -o $(BUILD_DIR)/$(PROGRAM_NAME) -I $(INCLUDE) $(CFLAGS) $(OBJECTS)
+	$(CC) -o $(BUILD_DIR)/$(PROGRAM_NAME) -I $(INCLUDE) $(OBJECTS) $(CFLAGS)
 	
 clean:
 	rm -fr $(BUILD_DIR)/$(PROGRAM_NAME) build/*
