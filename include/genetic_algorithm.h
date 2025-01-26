@@ -5,7 +5,7 @@
 #define TRUE 1
 
 #define MAX_GENES 350
-#define ROWS 3
+#define ROWS 10
 #define COLS 4
 #define MAX_POPULATION ROWS * COLS
 #define AMT_NEIGHBORS 4

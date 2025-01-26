@@ -137,7 +137,7 @@ void blend_crossover( Population* population, int father, int mother, int son, f
 
         // printf( "Aqui foi: %d\n", population->writing_individuals[ son ].genes[ i ] );
     }
-    printf( "\n" );
+    // printf( "\n" );
 }
 
 void downhill_local_search(
@@ -185,7 +185,7 @@ void genetic_algorithm( Problem* problem ){
     unsigned short *auxiliar_genes;
     unsigned int* auxiliar_allocated_clients;
 
-    int num_threads = 2;
+    int num_threads = 40;
 
     srand((unsigned) time(0));
 
@@ -228,7 +228,7 @@ void genetic_algorithm( Problem* problem ){
 
                 fit = fitness( population.writing_individuals[ i ].genes, population.individual_size, problem );
                 population.writing_individuals[ i ].fitness = fit;
-                printf( "\nGerou indivíduos aleatórios.\n" );
+                // printf( "\nGerou indivíduos aleatórios.\n" );
             } else {
                 pa1 = population.reading_individuals[ i ].neighbors[ 0 + (rand(  ) % AMT_NEIGHBORS ) ];
                 pa2 = population.reading_individuals[ i ].neighbors[ 0 + (rand(  ) % AMT_NEIGHBORS ) ];
@@ -243,10 +243,10 @@ void genetic_algorithm( Problem* problem ){
                     
                     cfo++;
                 }
-                printf( "\nTentou cruzar.\n" );
+                // printf( "\nTentou cruzar.\n" );
             }
         }
-        printf( "\nFez cruzamento\n" );
+        // printf( "\nFez cruzamento\n" );
 
         #pragma omp parallel for num_threads( num_threads ) \
         private( auxiliar_genes, auxiliar_allocated_clients, i, j ) shared( population, problem )
@@ -265,7 +265,7 @@ void genetic_algorithm( Problem* problem ){
                 population.writing_individuals[ i ].sels++;
             }
         }
-        printf( "\nFez as trocas lá\n" );
+        // printf( "\nFez as trocas lá\n" );
 
         #pragma omp parallel for num_threads(num_threads) private(i, j) shared( population, problem )
         for (i = 0; i < population.population_size; i++) {
@@ -278,10 +278,10 @@ void genetic_algorithm( Problem* problem ){
                     problem
                 );
         }
-        printf( "\nFez a busca local\n" );
+        // printf( "\nFez a busca local\n" );
 
         generation++;
-        // printf( "Evaluated individuals %d\n", cfo );
+        printf( "Evaluated individuals %d\n", cfo );
         // printf( "Generation number %d\n", generation );
     } while ( cfo < MAX_GEN );
 
