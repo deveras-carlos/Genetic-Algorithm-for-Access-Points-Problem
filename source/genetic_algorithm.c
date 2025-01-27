@@ -155,6 +155,21 @@ void crossover( Population* population, int father, int mother, int son, float a
     }
 }
 
+void mutate(Chromossome* individual, int individual_size, float mutation_rate, Problem* problem) {
+    for (int i = 0; i < individual_size; i++) {
+        if ( (float)rand() / RAND_MAX < mutation_rate) {
+            unsigned short original_gene = individual->genes[i];
+            individual->genes[i] = randgen();
+            fix_unfeasible(&(individual->genes[i]), individual->amt_allocated_clients, problem);
+
+            if (individual->genes[i] != original_gene) {
+                individual->amt_allocated_clients[original_gene]--;
+                individual->amt_allocated_clients[individual->genes[i]]++;
+            }
+        }
+    }
+}
+
 void downhill_local_search(
     Chromossome* individual, int individual_size, int step,
     double ( *fitness_function )( unsigned short*, int n, Problem* problem ), Problem* problem
@@ -266,6 +281,11 @@ void genetic_algorithm( Problem* problem ){
                     cfo++;
                 }
             }
+        }
+
+        #pragma omp parallel for num_threads( num_threads ) shared(population, problem)
+        for (int i = 0; i < population.population_size; i++) {
+            mutate(&population.writing_individuals[i], population.individual_size, MUTATION_RATE, problem);
         }
 
         #pragma omp parallel for num_threads( num_threads ) \
