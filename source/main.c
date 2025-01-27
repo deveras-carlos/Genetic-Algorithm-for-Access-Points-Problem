@@ -66,9 +66,41 @@ Problem* read_csv(const char* filename) {
     return problem;
 }
 
+Problem* generate_random_problem() {
+    // Allocate memory for the Problem structure
+    Problem* problem = (Problem*)malloc(sizeof(Problem));
+    if (!problem) {
+        perror("Failed to allocate memory for Problem");
+        return NULL;
+    }
+
+    // Initialize access points and their capacities
+    problem->access_points[0] = (Point){0, 0};
+    problem->access_points[1] = (Point){80, 0};
+    problem->access_points[2] = (Point){0, 80};
+    problem->access_points[3] = (Point){80, 80};
+
+    problem->access_points_capacity[0] = 64;
+    problem->access_points_capacity[1] = 64;
+    problem->access_points_capacity[2] = 128;
+    problem->access_points_capacity[3] = 128;
+
+    // Seed the random number generator
+    srand(time(NULL));
+
+    // Generate random client data
+    for (int i = 0; i < AMT_CLIENTS; i++) {
+        problem->clients[i].x = rand() % 81; // Generate x in range [0, 80]
+        problem->clients[i].y = rand() % 81; // Generate y in range [0, 80]
+    }
+
+    return problem;
+}
+
 int main( int argc, char* argv[  ] ){
     const char* filename = "ag_data.csv";
-    Problem* problem = read_csv(filename);
+    // Problem* problem = read_csv(filename);
+    Problem* problem = generate_random_problem(  );
 
     if (problem) {
         printf("Access Points:\n");
