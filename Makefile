@@ -36,7 +36,7 @@ all: program
 
 program:
 	@mkdir -p $(BUILD_DIR)
-	$(CC) -o $(BUILD_DIR)/$(PROGRAM_NAME) -I $(INCLUDE) $(OBJECTS) $(CFLAGS)
+	$(CC) -o $(BUILD_DIR)/$(PROGRAM_NAME) -I $(INCLUDE) $(CFLAGS) $(OBJECTS)
 	
 clean:
 	rm -fr $(BUILD_DIR)/$(PROGRAM_NAME) build/*

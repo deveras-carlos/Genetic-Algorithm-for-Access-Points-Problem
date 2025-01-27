@@ -11,10 +11,10 @@
 #define AMT_NEIGHBORS 4
 #define MAX_GEN 10000
 
-#define XALPHA  0.35
+#define XALPHA  0.25
 
 #define TOURNAMENT_SIZE 3
-#define MAX_ITER_LOCAL_SEARCH 1
+#define MAX_ITER_LOCAL_SEARCH 3
 
 #define AMT_ACCESS_POINTS 4
 #define AMT_CLIENTS 350

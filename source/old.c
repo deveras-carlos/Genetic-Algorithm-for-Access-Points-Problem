@@ -2,14 +2,8 @@
 #define GENETIC_ALGORITHM_C
 #include "genetic_algorithm.h"
 
-void swap(int* a, int* b) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
-}
-
 unsigned short randgen(  ){
-	return ( unsigned short )( rand(  ) % AMT_ACCESS_POINTS );
+	return rand(  ) % AMT_ACCESS_POINTS;
 }
 
 double fitness( unsigned short* genes, int n, Problem* problem ){
@@ -29,43 +23,27 @@ void start_population(
     Population* population, unsigned int population_size, unsigned int individual_size,
     double ( *fitness_function )( unsigned short*, int n, Problem* problem ), Problem* problem
 ){
-    unsigned int i, j;
+    int i, j;
     unsigned short gene;
-    double fitness, sum = 0;
+    double fit, sum = 0;
 
     for ( i = 0; i < population_size; i++ ){
-        population->reading_individuals[ i ].genes = ( unsigned short* ) malloc( individual_size * sizeof( unsigned short ) );
-        population->writing_individuals[ i ].genes = ( unsigned short* ) malloc( individual_size * sizeof( unsigned short ) );
+        population->reading_individuals[ i ].genes = ( unsigned short* ) malloc( MAX_GENES * sizeof( unsigned short ) );
+        population->writing_individuals[ i ].genes = ( unsigned short* ) malloc( MAX_GENES * sizeof( unsigned short ) );
 
-        if ( i == 0 ){
-            population->writing_individuals[ i ].neighbors[ 0 ] = MAX_POPULATION - 2;
-            population->writing_individuals[ i ].neighbors[ 1 ] = MAX_POPULATION - 1;
-            population->writing_individuals[ i ].neighbors[ 2 ] = 1;
-            population->writing_individuals[ i ].neighbors[ 3 ] = 2;
-        } else if ( i == 1 ){
-            population->writing_individuals[ i ].neighbors[ 0 ] = MAX_POPULATION - 1;
-            population->writing_individuals[ i ].neighbors[ 1 ] = 0;
-            population->writing_individuals[ i ].neighbors[ 2 ] = i + 1;
-            population->writing_individuals[ i ].neighbors[ 3 ] = i + 2;
-        } else if ( i == MAX_POPULATION - 1 ){
-            population->writing_individuals[ i ].neighbors[ 0 ] = i - 2;
-            population->writing_individuals[ i ].neighbors[ 1 ] = i - 1;
-            population->writing_individuals[ i ].neighbors[ 2 ] = 0;
-            population->writing_individuals[ i ].neighbors[ 3 ] = 1;
-        } else if ( i == MAX_POPULATION - 2 ){
-            population->writing_individuals[ i ].neighbors[ 0 ] = i - 2;
-            population->writing_individuals[ i ].neighbors[ 1 ] = i - 1;
-            population->writing_individuals[ i ].neighbors[ 2 ] = MAX_POPULATION - 1;
-            population->writing_individuals[ i ].neighbors[ 3 ] = 0;
-        } else {
-            population->writing_individuals[ i ].neighbors[ 0 ] = i - 2;
-            population->writing_individuals[ i ].neighbors[ 1 ] = i - 1;
-            population->writing_individuals[ i ].neighbors[ 2 ] = i + 1;
-            population->writing_individuals[ i ].neighbors[ 3 ] = i + 2;
-        }
+        population->reading_individuals[ i ].neighbors[ 0 ] = i % COLS == 0 ? i + ( COLS - 1 ) : i - 1;         // Left
+        population->reading_individuals[ i ].neighbors[ 1 ] = i % COLS == COLS - 1 ? i - ( COLS - 1 ) : i + 1;  // Right
 
-        for ( j = 0; j < AMT_NEIGHBORS; j++ )
-            population->reading_individuals[ i ].neighbors[ j ] = population->writing_individuals[ i ].neighbors[ j ];
+        population->reading_individuals[ i ].neighbors[ 2 ] = ( i / COLS ) > ROWS - 3 ? i - COLS * 2 : i + COLS * 2;         // Top or Bottom
+        population->reading_individuals[ i ].neighbors[ 3 ] = ( i / COLS ) == ROWS - 2 || ( i / COLS ) == 0 ? i + COLS : i - COLS * 2;  // Bottom or Top
+
+        // Correction if it's on line 1 or last line
+        population->reading_individuals[ i ].neighbors[ 3 ] += ( i / COLS ) == 1 || ( i / COLS ) > ROWS - 2 ? COLS : 0;
+        population->reading_individuals[ i ].neighbors[ 2 ] += ( i / COLS ) == 1 || ( i / COLS ) > ROWS - 2 ? COLS : 0;    
+        // printf( "%d : %d\n\n", i, ( i / COLS ) );
+
+        for ( j = 0; j < 4; j++ )
+            population->writing_individuals[ i ].neighbors[ j ] = population->reading_individuals[ i ].neighbors[ j ];
 
         for ( j = 0; j < AMT_ACCESS_POINTS; j++ ){
             population->reading_individuals[ i ].amt_allocated_clients[ j ] = 0;
@@ -77,14 +55,14 @@ void start_population(
             population->reading_individuals[ i ].genes[ j ] = gene;
             population->writing_individuals[ i ].genes[ j ] = gene;
 
-            population->reading_individuals[ i ].amt_allocated_clients[ gene ] += 1;
-            population->writing_individuals[ i ].amt_allocated_clients[ gene ] += 1;
+            population->reading_individuals[ i ].amt_allocated_clients[ j ] += 1;
+            population->writing_individuals[ i ].amt_allocated_clients[ j ] += 1;
         }
 
-        fitness = fitness_function( population->reading_individuals[ i ].genes, individual_size, problem );
-        population->writing_individuals[ i ].fitness = population->reading_individuals[ i ].fitness = fitness;
+        fit = fitness_function( population->reading_individuals[ i ].genes, individual_size, problem );
+        population->writing_individuals[ i ].fitness = population->reading_individuals[ i ].fitness = fit;
 
-        if ( i == 0 || i == MAX_POPULATION / 4 || i == MAX_POPULATION / 2 || i == MAX_POPULATION - MAX_POPULATION / 4 ){
+        if ( i == 0 || i == COLS / 4 || i == COLS / 2 || i == COLS - COLS / 4 ){
             population->reading_individuals[ i ].random = TRUE;
             population->writing_individuals[ i ].random = TRUE;
         } else {
@@ -95,12 +73,12 @@ void start_population(
         population->reading_individuals[ i ].sels = 0;
         population->writing_individuals[ i ].sels = 0;
 
-        sum += fitness;
+        sum += ( fit ); // fabs
     }
-
+    
     population->population_size = population_size;
     population->individual_size = individual_size;
-    population->sum_fitness = sum;
+    population->sum_fitness = ( sum / ( double )population_size ) / ( double )individual_size ;
     population->best = 0;
     population->worst = 0;
     population->mutation_amount = 0;
@@ -131,27 +109,41 @@ int fix_unfeasible( unsigned short* xr, unsigned int* amt_allocated_clients, Pro
     return 0;
 }
 
-void crossover( Population* population, int father, int mother, int son, float alpha, Problem* problem ){
-    int aux, i;
-    int point1 = rand() % population->individual_size;
-    int point2 = rand() % population->individual_size;
-    if (point1 > point2){
-        aux = point1;
-        point1 = point2;
-        point2 = aux;
+void blend_crossover( Population* population, int father, int mother, int son, float alpha, Problem* problem ){
+    double a, b, f, m, s;
+    int i;
+    int r;
+
+    for ( i = 0; i < AMT_ACCESS_POINTS; i++ ){
+        population->writing_individuals[ son ].amt_allocated_clients[ i ] = 0;
     }
 
-    for ( i = point1; i < point2; i++ ) {
-        population->writing_individuals[ son ].genes[i] = population->reading_individuals[ father ].genes[i];
-    }
+    for ( i = 0; i < population->individual_size; i++ ){
+        r = rand(  ) % 3;
 
+        printf( "Gene %d, son: %d - father: %d - mother: %d\n", i, son, father, mother );
+        switch ( r ){
+            case 0:
+                population->writing_individuals[ son ].genes[ i ] = population->reading_individuals[ father ].genes[ i ];
+                break;
+            case 1:
+                population->writing_individuals[ son ].genes[ i ] = population->reading_individuals[ mother ].genes[ i ];
+                break;
+            default:
+                a = -alpha;
+                b = 1 + alpha;
+                f = a + ( rand(  ) / 101 / 100 ) * ( b - a );
+                population->writing_individuals[ son ].genes[ i ] = ( ( unsigned short )(
+                    ( double )population->reading_individuals[ father ].genes[ i ] +
+                    r * ( double )( population->reading_individuals[ mother ].genes[ i ] - population->reading_individuals[ father ].genes[ i ] )
+                ) ) % AMT_ACCESS_POINTS;
+                break;
+        }
 
-    for ( i = 0; i < point1; i++ ) {
-        population->writing_individuals[ son ].genes[ i ] = population->reading_individuals[ mother ].genes[i];
-    }
+        // printf( "Access point: %d\n", population->writing_individuals[ son ].genes[ i ] );
 
-    for ( i = point2; i < population->individual_size; i++ ) {
-        population->writing_individuals[ son ].genes[ i ] = population->reading_individuals[ mother ].genes[i];
+        population->writing_individuals[ son ].amt_allocated_clients[ population->writing_individuals[ son ].genes[ i ] ] += 1;
+        fix_unfeasible( &( population->writing_individuals[ son ].genes[ i ] ), population->writing_individuals[ son ].amt_allocated_clients, problem );
     }
 }
 
@@ -160,28 +152,27 @@ void downhill_local_search(
     double ( *fitness_function )( unsigned short*, int n, Problem* problem ), Problem* problem
 ){
     int i;
-    double step_size = 1 + ( double ) ( ( rand(  ) % 101 / 100 ) * step );
+    double step_size = 1 - 0.0001 * ( double ) step;
     double new_fitness, original_fitness = individual->fitness;
-    double original_gene;
 
     for (i = 0; i < individual_size; i++) {
-        original_gene = ( double )individual->genes[i];
+        double original_gene = ( double )individual->genes[i];
 
-        individual->genes[i] = ( ( unsigned short )( original_gene + step_size ) ) % AMT_ACCESS_POINTS;
+        individual->genes[i] = ( unsigned short )( original_gene + step_size ) % AMT_ACCESS_POINTS;
         fix_unfeasible(&(individual->genes[i]), individual->amt_allocated_clients, problem);
         new_fitness = fitness_function(individual->genes, individual_size, problem);
 
         if (new_fitness < original_fitness) {
             original_fitness = new_fitness;
         } else {
-            individual->genes[i] = ( ( unsigned short )( original_gene - step_size ) ) % AMT_ACCESS_POINTS;
+            individual->genes[i] = ( unsigned short )( original_gene - step_size ) % AMT_ACCESS_POINTS;
             fix_unfeasible(&(individual->genes[i]), individual->amt_allocated_clients, problem);
             new_fitness = fitness_function(individual->genes, individual_size, problem);
 
             if (new_fitness < original_fitness) {
                 original_fitness = new_fitness;
             } else {
-                individual->genes[i] = ( unsigned short ) original_gene;
+                individual->genes[i] = original_gene;
             }
         }
     }
@@ -202,11 +193,11 @@ void genetic_algorithm( Problem* problem ){
     unsigned short *auxiliar_genes;
     unsigned int* auxiliar_allocated_clients;
 
-    int num_threads = 8;
+    int num_threads = 4;
 
     srand((unsigned) time(0));
 
-    start_population( &population, ( unsigned int ) MAX_POPULATION, ( unsigned int ) MAX_GENES, fitness, problem );
+    start_population( &population, MAX_POPULATION, MAX_GENES, fitness, problem );
 
     for ( int i = 0; i < MAX_POPULATION; i++ ){
         printf( "Individual[ %d ] = {\n", i );
@@ -233,45 +224,45 @@ void genetic_algorithm( Problem* problem ){
     printf( "\n\tAverage distance: %lf\n", ( population.sum_fitness / ( MAX_POPULATION * AMT_CLIENTS ) ) );
     
     start = clock();
-
     do {
         #pragma omp parallel for num_threads( num_threads ) \
         private( pa1, pa2, fit, gene, i, j ) shared( population, problem ) reduction( +:cfo )
         for ( i = 0; i < population.population_size; i++ ){
-            if ( population.writing_individuals[ i ].random == TRUE ){
+            if ( population.reading_individuals[ i ].random == TRUE ){
                 for ( j = 0; j < AMT_ACCESS_POINTS; j++ )
-                    population.writing_individuals[ i ].amt_allocated_clients[ j ] = 0;
+                    population.writing_individuals->amt_allocated_clients[ j ] = 0;
                 
                 for ( j = 0; j < population.individual_size; j++ ){
                     gene = (unsigned short) randgen(  );
+                    printf( "Alelo %d, indivíduo %d - gene: %d", j, i, gene );
                     population.writing_individuals[ i ].genes[ j ] = gene;
-                    population.writing_individuals[ i ].amt_allocated_clients[ gene ] += 1;
+                    population.writing_individuals->amt_allocated_clients[ j ] += 1;
                 }
 
                 fit = fitness( population.writing_individuals[ i ].genes, population.individual_size, problem );
                 population.writing_individuals[ i ].fitness = fit;
+                // printf( "\nGerou indivíduos aleatórios.\n" );
             } else {
                 pa1 = population.reading_individuals[ i ].neighbors[ 0 + (rand(  ) % AMT_NEIGHBORS ) ];
                 pa2 = population.reading_individuals[ i ].neighbors[ 0 + (rand(  ) % AMT_NEIGHBORS ) ];
 
                 if ( pa1 != pa2 ){
-                    crossover( &population, pa1, pa2, i, XALPHA, problem );
-                    for ( j = 0; j < population.individual_size; j++ ){
-                        fix_unfeasible( &( population.writing_individuals[ i ].genes[ j ] ), population.writing_individuals[ i ].amt_allocated_clients, problem );
-                    }
+                    blend_crossover( &population, pa1, pa2, i, XALPHA, problem );
                     population.writing_individuals[ i ].fitness = fitness( population.writing_individuals[ i ].genes, population.individual_size, problem);
                     if ( population.writing_individuals[ i ].fitness < population.reading_individuals[ i ].fitness )
-                        population.writing_individuals[ i ].sels++;
+                        population.reading_individuals[ i ].sels++;
                     
                     cfo++;
                 }
+                // printf( "\nTentou cruzar.\n" );
             }
         }
+        // printf( "\nFez cruzamento\n" );
 
         #pragma omp parallel for num_threads( num_threads ) \
         private( auxiliar_genes, auxiliar_allocated_clients, i, j ) shared( population, problem )
         for ( i = 0; i < population.population_size; i++ ){
-            if (population.writing_individuals[ i ].sels > population.reading_individuals[ i ].sels ){
+            if (population.reading_individuals[ i ].sels > population.writing_individuals[ i ].sels ){
                 population.reading_individuals[ i ].fitness = population.writing_individuals[ i ].fitness;
 
                 auxiliar_genes = population.reading_individuals[ i ].genes;
@@ -282,7 +273,7 @@ void genetic_algorithm( Problem* problem ){
                     population.reading_individuals[ i ].amt_allocated_clients[ j ] = population.writing_individuals[ i ].amt_allocated_clients[ j ];
                 }
 
-                population.reading_individuals[ i ].sels++;
+                population.writing_individuals[ i ].sels++;
             }
         }
         // printf( "\nFez as trocas lá\n" );
@@ -298,9 +289,11 @@ void genetic_algorithm( Problem* problem ){
                     problem
                 );
         }
+        // printf( "\nFez a busca local\n" );
 
         generation++;
-        printf( "CFO: %d\n", cfo );
+        printf( "Evaluated individuals %d\n", cfo );
+        // printf( "Generation number %d\n", generation );
     } while ( cfo < MAX_GEN );
 
     end = clock();
