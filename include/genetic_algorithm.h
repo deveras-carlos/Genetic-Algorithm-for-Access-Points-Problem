@@ -12,7 +12,7 @@
 #define MAX_GEN 10000
 
 #define XALPHA  0.25
-#define MUTATION_RATE 0.1
+#define MUTATION_RATE 0.5
 
 #define TOURNAMENT_SIZE 3
 #define MAX_ITER_LOCAL_SEARCH 3
