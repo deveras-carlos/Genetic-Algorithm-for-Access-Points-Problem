@@ -99,8 +99,8 @@ Problem* generate_random_problem() {
 
 int main( int argc, char* argv[  ] ){
     const char* filename = "ag_data.csv";
-    // Problem* problem = read_csv(filename);
-    Problem* problem = generate_random_problem(  );
+    Problem* problem = read_csv(filename);
+    // Problem* problem = generate_random_problem(  );
 
     if (problem) {
         printf("Access Points:\n");

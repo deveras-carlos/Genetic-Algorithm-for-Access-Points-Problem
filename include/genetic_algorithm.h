@@ -4,18 +4,17 @@
 #define FALSE 0
 #define TRUE 1
 
-#define MAX_GENES 350
-#define ROWS 10
-#define COLS 4
+#define ROWS 5
+#define COLS 8
 #define MAX_POPULATION ROWS * COLS
 #define AMT_NEIGHBORS 4
 #define MAX_GEN 10000
 
-#define XALPHA  0.25
-#define MUTATION_RATE 0.5
+#define XALPHA  0.4
+#define MUTATION_RATE 0.2
 
-#define TOURNAMENT_SIZE 3
-#define MAX_ITER_LOCAL_SEARCH 3
+#define TOURNAMENT_SIZE 10
+#define MAX_ITER_LOCAL_SEARCH 1
 
 #define AMT_ACCESS_POINTS 4
 #define AMT_CLIENTS 350
@@ -60,15 +59,6 @@ typedef struct _population_ {
         int             equals;
         int             best_generation;
 } Population;
-
-void start_population(
-    Population* population, unsigned int population_size, unsigned int individual_size,
-    double ( *fitness_function )( unsigned short*, int n, Problem* problem ), Problem* problem
-);
-
-int fix_unfeasible( unsigned short* xr, unsigned int* amt_allocated_clients, Problem* problem );
-
-void blend_crossover( Population* population, int father, int mother, int son, float alpha, Problem* problem );
 
 void genetic_algorithm( Problem* problem );
 
